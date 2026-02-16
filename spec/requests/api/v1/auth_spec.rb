@@ -12,7 +12,8 @@ RSpec.describe "Api::V1::Auth", type: :request do
       post "/api/v1/auth/register", params: valid_params, as: :json
       expect(response).to have_http_status(:created)
       body = response.parsed_body
-      expect(body).to include("access_token", "token_type" => "Bearer", "expires_in")
+      expect(body).to include("access_token", "token_type", "expires_in")
+      expect(body["token_type"]).to eq("Bearer")
       expect(body["access_token"]).to be_present
     end
 
@@ -20,7 +21,8 @@ RSpec.describe "Api::V1::Auth", type: :request do
       post "/api/v1/auth/register", params: { email: "bad", password: "short" }, as: :json
       expect(response).to have_http_status(:unprocessable_entity)
       body = response.parsed_body
-      expect(body).to include("message" => "Validation failed", "errors")
+      expect(body).to include("message", "errors")
+      expect(body["message"]).to eq("Validation failed")
     end
 
     it "returns 422 when email already taken" do
@@ -37,7 +39,8 @@ RSpec.describe "Api::V1::Auth", type: :request do
       post "/api/v1/auth/login", params: { email: "login@example.com", password: "password123" }, as: :json
       expect(response).to have_http_status(:ok)
       body = response.parsed_body
-      expect(body).to include("access_token", "token_type" => "Bearer", "expires_in")
+      expect(body).to include("access_token", "token_type", "expires_in")
+      expect(body["token_type"]).to eq("Bearer")
     end
 
     it "returns 401 for wrong password" do

@@ -6,7 +6,7 @@ module Api
       before_action :set_submission, only: %i[show update]
 
       def create
-        assignment = Assignment.find(params[:assignment_id])
+        assignment = Assignment.find(params[:id])
         submission = assignment.submissions.build(
           user: current_user,
           source_code: params[:source_code],
