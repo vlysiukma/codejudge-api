@@ -30,7 +30,9 @@ Rails 8 API-only application implementing the [CodeJudge OpenAPI specification](
    The image uses an entrypoint that runs `bundle exec` for `rails` and `rake`, so you can type `rails` (no need for `bin/rails` or `bundle exec rails`). If you see an error like `ruby\r: No such file or directory`, the `bin/rails` / `bin/rake` files have Windows CRLF line endings. Fix them with:
    `docker compose run --rm web bash -c "sed -i 's/\r$//' bin/rails bin/rake"`
 
-3. **API base URL:** `http://localhost:3000/api/v1`
+3. **Seed the database (optional):** `docker compose run --rm web rails db:seed`
+
+4. **API base URL:** `http://localhost:3000/api/v1`
 
 ## Running without Docker
 
@@ -60,6 +62,20 @@ Rails 8 API-only application implementing the [CodeJudge OpenAPI specification](
 | GET | `/api/v1/leaderboard` | No | Student leaderboard |
 
 Use the returned `access_token` as `Authorization: Bearer <token>` for protected routes.
+
+## Testing mode (chaos injection)
+
+In **development** and **test**, any request can opt into random errors or timeouts so API consumers can test error handling and retries. Add optional query params (no effect if omitted):
+
+| Param | Range | Description |
+|-------|--------|-------------|
+| `inject_error_pct` | 1–100 | Percentage chance to return a random 4xx/5xx (400, 401, 403, 404, 422, 500, 502, 503). |
+| `inject_timeout_pct` | 1–100 | Percentage chance to sleep then return 504 Gateway Timeout. |
+| `inject_timeout_sec` | number | Seconds to sleep when timeout is triggered (default: 2; capped at 60). |
+
+Example: `GET /api/v1/assignments?inject_error_pct=20&inject_timeout_pct=10&inject_timeout_sec=3`
+
+In **production**, chaos injection is disabled unless `ENABLE_CHAOS_INJECTION=true` is set.
 
 ## Tests
 

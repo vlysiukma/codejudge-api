@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class ApplicationController < ActionController::API
+  include ChaosInjection
   include JWTSessions::RailsAuthorization
 
   before_action :authorize_access_request!
