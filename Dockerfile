@@ -15,6 +15,8 @@ WORKDIR /app
 
 ENV RAILS_ENV=development
 ENV BUNDLE_PATH=/usr/local/bundle
+# So "rails" and "rake" are found when the command is run via bash -c (e.g. docker-compose web)
+ENV PATH="/app/bin:/usr/local/bundle/bin:${PATH}"
 
 COPY Gemfile ./
 RUN bundle lock --add-platform ruby && bundle install
