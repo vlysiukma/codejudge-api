@@ -21,7 +21,7 @@ module Api
           tokens = issue_tokens(user)
           render json: auth_response(tokens), status: :ok
         else
-          render json: { message: "Authentication token is missing or invalid" }, status: :unauthorized
+          render json: { message: "Invalid user and/or password" }, status: :unauthorized
         end
       end
 

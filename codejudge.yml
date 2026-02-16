@@ -331,7 +331,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /assignments/{id}/submit:
+  /assignments/{id}/submissions:
     parameters:
       - $ref: '#/components/parameters/IdPath'
     post:

@@ -56,7 +56,7 @@ Rails 8 API-only application implementing the [CodeJudge OpenAPI specification](
 | POST | `/api/v1/assignments/:id/test_cases` | Bearer | Add test case |
 | PATCH | `/api/v1/test_cases/:test_case_id` | Bearer | Update test case |
 | DELETE | `/api/v1/test_cases/:test_case_id` | Bearer | Delete test case |
-| POST | `/api/v1/assignments/:id/submit` | Bearer | Submit code (202) |
+| POST | `/api/v1/assignments/:id/submissions` | Bearer | Submit code (202) |
 | GET | `/api/v1/submissions/:submission_id` | Bearer | Submission report |
 | PATCH | `/api/v1/submissions/:submission_id` | Bearer | Update submission (comment/score) |
 | GET | `/api/v1/leaderboard` | No | Student leaderboard |

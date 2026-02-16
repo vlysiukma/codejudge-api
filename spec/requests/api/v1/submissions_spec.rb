@@ -7,9 +7,9 @@ RSpec.describe "Api::V1::Submissions", type: :request do
   let(:auth_headers) { auth_headers_for(user) }
   let(:assignment) { create(:assignment) }
 
-  describe "POST /api/v1/assignments/:id/submit" do
+  describe "POST /api/v1/assignments/:id/submissions" do
     it "creates submission and returns 202" do
-      post "/api/v1/assignments/#{assignment.id}/submit",
+      post "/api/v1/assignments/#{assignment.id}/submissions",
         params: { source_code: "def add(a,b); a+b; end", language: "ruby" },
         headers: auth_headers,
         as: :json
@@ -18,7 +18,7 @@ RSpec.describe "Api::V1::Submissions", type: :request do
     end
 
     it "returns 401 without auth" do
-      post "/api/v1/assignments/#{assignment.id}/submit",
+      post "/api/v1/assignments/#{assignment.id}/submissions",
         params: { source_code: "code", language: "ruby" },
         as: :json
       expect(response).to have_http_status(:unauthorized)

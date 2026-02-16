@@ -8,9 +8,9 @@ Rails.application.routes.draw do
 
       get "current_user", to: "users#current"
 
-      resources :assignments, only: %i[index show create update destroy] do
+      resources :assignments do
         resources :test_cases, only: %i[index create], controller: "assignment_test_cases"
-        post "submit", to: "submissions#create", on: :member
+        resources :submissions, only: :create
       end
 
       resources :test_cases, only: %i[update destroy], param: :test_case_id
