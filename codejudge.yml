@@ -1,0 +1,634 @@
+openapi: 3.0.3
+info:
+  title: CodeJudge API
+  version: 1.2.0
+  description: |
+    ### Automated code checking platform for educational institutions.
+    This API allows managing educational assignments (**Assignments**), configuring hidden and public tests (**Test Cases**), and processing student solutions (**Submissions**).
+
+servers:
+  - url: https://staging.codejudge.example.com/api/v1
+    description: Staging ENV
+
+security:
+  - BearerAuth: []
+
+paths:
+  /auth/register:
+    post:
+      summary: Register a new user
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegisterInput'
+            example:
+              email: "student@university.edu"
+              password: "securePassword123"
+              username: "jdoe"
+      responses:
+        '201':
+          description: User created; JWT token returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthToken'
+              example:
+                access_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                token_type: "Bearer"
+                expires_in: 3600
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+
+  /auth/login:
+    post:
+      summary: Log in with email and password
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLoginInput'
+            example:
+              email: "student@university.edu"
+              password: "securePassword123"
+      responses:
+        '200':
+          description: Success; JWT token returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthToken'
+              example:
+                access_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                token_type: "Bearer"
+                expires_in: 3600
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+
+  /assignments:
+    get:
+      summary: List all assignments
+      tags: [Assignments]
+      security: []
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            default: 10
+        - name: difficulty
+          in: query
+          description: Filter by difficulty level
+          schema:
+            type: string
+            enum: [easy, medium, hard]
+      responses:
+        '200':
+          description: List of assignments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Assignment'
+              example:
+                - id: 1
+                  title: "Binary Search"
+                  description: "Implement binary search algorithm."
+                  difficulty: "medium"
+                  max_score: 100
+                - id: 2
+                  title: "Two Sum"
+                  description: "Find two numbers that add up to target."
+                  difficulty: "easy"
+                  max_score: 50
+    post:
+      summary: Create a new assignment
+      tags: [Assignments]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignmentInput'
+            example:
+              title: "Fibonacci Sequence"
+              description: "Write a function to return the nth Fibonacci number."
+              difficulty: "easy"
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Assignment'
+              example:
+                id: 101
+                title: "Fibonacci Sequence"
+                description: "Write a function to return the nth Fibonacci number."
+                difficulty: "easy"
+                max_score: 0
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+
+  /assignments/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      summary: Get assignment details
+      tags: [Assignments]
+      security: []
+      responses:
+        '200':
+          description: Assignment details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Assignment'
+              example:
+                id: 1
+                title: "Binary Search"
+                description: "Implement binary search algorithm."
+                difficulty: "medium"
+                max_score: 100
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      summary: Update assignment
+      tags: [Assignments]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignmentInput'
+            example:
+              title: "Binary Search (Updated)"
+              description: "Implement binary search with recursive approach."
+              difficulty: "hard"
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Assignment'
+              example:
+                id: 1
+                title: "Binary Search (Updated)"
+                description: "Implement binary search with recursive approach."
+                difficulty: "hard"
+                max_score: 100
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+    delete:
+      summary: Delete assignment
+      tags: [Assignments]
+      responses:
+        '204':
+          description: Deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /assignments/{id}/test-cases:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      summary: View assignment test cases
+      tags: [Test Cases]
+      responses:
+        '200':
+          description: List of test cases
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TestCase'
+              example:
+                - id: 50
+                  input_data: "2 2"
+                  expected_output: "4"
+                  is_hidden: false
+                  points: 5
+                - id: 51
+                  input_data: "100 200"
+                  expected_output: "300"
+                  is_hidden: true
+                  points: 10
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      summary: Add test case
+      tags: [Test Cases]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestCaseInput'
+            example:
+              input_data: "5 5"
+              expected_output: "10"
+              is_hidden: true
+              points: 5
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestCase'
+              example:
+                id: 52
+                input_data: "5 5"
+                expected_output: "10"
+                is_hidden: true
+                points: 5
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+
+  /test-cases/{testCaseId}:
+    parameters:
+      - name: testCaseId
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Specific test case ID
+    patch:
+      summary: Update test case
+      tags: [Test Cases]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestCaseInput'
+            example:
+              points: 10
+              is_hidden: false
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestCase'
+              example:
+                id: 52
+                input_data: "5 5"
+                expected_output: "10"
+                is_hidden: false
+                points: 10
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+    delete:
+      summary: Delete test case
+      tags: [Test Cases]
+      responses:
+        '204':
+          description: Deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /assignments/{id}/submit:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    post:
+      summary: Submit code for review
+      tags: [Submissions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [source_code, language]
+              properties:
+                source_code: { type: string, example: "def solution(a, b); a + b; end" }
+                language: { type: string, enum: [ruby, python, cpp, java] }
+            example:
+              source_code: "def solution(a, b)\n  return a + b\nend"
+              language: "ruby"
+      responses:
+        '202':
+          description: Accepted for processing
+          content:
+            application/json:
+              schema:
+                properties:
+                  submission_id: { type: string, format: uuid }
+              example:
+                submission_id: "123e4567-e89b-12d3-a456-426614174000"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+
+  /submissions/{submissionId}:
+    parameters:
+      - name: submissionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: Submission UUID
+    get:
+      summary: Submission results
+      tags: [Submissions]
+      responses:
+        '200':
+          description: Submission results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmissionReport'
+              example:
+                id: "123e4567-e89b-12d3-a456-426614174000"
+                status: "completed"
+                final_score: 80
+                test_results:
+                  - status: "AC"
+                    execution_time_ms: 10
+                    actual_output: "4"
+                  - status: "WA"
+                    execution_time_ms: 12
+                    actual_output: "300"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      summary: Update submission (add comment)
+      tags: [Submissions]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                instructor_comment: { type: string }
+                manual_score: { type: integer }
+            example:
+              instructor_comment: "Good job, but check edge cases."
+              manual_score: 90
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmissionReport'
+              example:
+                id: "123e4567-e89b-12d3-a456-426614174000"
+                status: "completed"
+                final_score: 90
+                test_results: []
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /leaderboard:
+    get:
+      summary: Student leaderboard
+      tags: [Analytics]
+      security: []
+      responses:
+        '200':
+          description: Top list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    rank: { type: integer }
+                    username: { type: string }
+                    total_score: { type: integer }
+              example:
+                - rank: 1
+                  username: "jdoe"
+                  total_score: 1500
+                - rank: 2
+                  username: "asmith"
+                  total_score: 1450
+  
+  /current_user:
+    get:
+      summary: Current user profile
+      tags: [Users]
+      responses:
+        '200':
+          description: Authorized user data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: integer }
+                  email: { type: string }
+                  role: { type: string }
+              example:
+                id: 42
+                email: "student@university.edu"
+                role: "student"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    IdPath:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+
+  schemas:
+    Assignment:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        description: { type: string }
+        difficulty: { type: string, enum: [easy, medium, hard] }
+        max_score: { type: integer }
+
+    AssignmentInput:
+      type: object
+      required: [title, description]
+      properties:
+        title: { type: string, minLength: 5 }
+        description: { type: string }
+        difficulty: { type: string, enum: [easy, medium, hard] }
+        max_score: { type: integer, minimum: 0 }
+
+    TestCase:
+      allOf:
+        - $ref: '#/components/schemas/TestCaseInput'
+        - type: object
+          properties:
+            id: { type: integer }
+
+    TestCaseInput:
+      type: object
+      required: [input_data, expected_output]
+      properties:
+        input_data: { type: string }
+        expected_output: { type: string }
+        is_hidden: { type: boolean, default: true }
+        points: { type: integer, default: 5, minimum: 1 }
+
+    SubmissionReport:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        status: { type: string, enum: [pending, running, completed] }
+        final_score: { type: integer }
+        test_results:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestCaseResult'
+
+    TestCaseResult:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [AC, WA, TLE, MLE, RE, CE]
+          description: |
+            * `AC` - Accepted
+            * `WA` - Wrong Answer
+            * `TLE` - Time Limit Exceeded
+            * `MLE` - Memory Limit Exceeded
+            * `RE` - Runtime Error
+            * `CE` - Compilation Error
+        execution_time_ms: { type: integer }
+        actual_output: { type: string }
+
+    ValidationError:
+      type: object
+      properties:
+        message: { type: string }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field: { type: string }
+              message: { type: string }
+
+    Error:
+      type: object
+      properties:
+        message: { type: string }
+
+    UserRegisterInput:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, format: password, minLength: 8 }
+        username: { type: string, minLength: 1 }
+
+    UserLoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, format: password }
+
+    AuthToken:
+      type: object
+      description: JWT token returned after successful registration or login
+      properties:
+        access_token: { type: string, description: JWT bearer token }
+        token_type: { type: string, enum: [Bearer] }
+        expires_in: { type: integer, description: Token lifetime in seconds }
+
+  responses:
+    NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: "Resource not found"
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: "Invalid JSON format"
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: "Authentication token is missing or invalid"
+    UnprocessableEntity:
+      description: Validation Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationError'
+          example:
+            message: "Validation failed"
+            errors:
+              - field: "title"
+                message: "Title is too short"
