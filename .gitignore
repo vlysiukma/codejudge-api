@@ -1,0 +1,70 @@
+# Rails defaults
+*.rbc
+capybara-*.html
+.rspec
+/db/*.sqlite3
+/db/*.sqlite3-journal
+/db/*.sqlite3-[0-9]*
+/public/system
+/coverage/
+/spec/tmp
+*.orig
+rerun.txt
+pickle-email-*.html
+
+# Logs and temp files
+/log/*
+/tmp/*
+!/log/.keep
+!/tmp/.keep
+
+# Secrets
+config/initializers/secret_token.rb
+config/master.key
+
+# Environment
+.env
+.env*.local
+
+# Bundler
+/.bundle
+/vendor/bundle
+
+# RVM
+.rvmrc
+
+# Bower
+/vendor/assets/bower_components
+*.bowerrc
+bower.json
+
+# Pow
+.powenv
+
+# Byebug
+.byebug_history
+
+# Node
+node_modules/
+
+# Compiled assets
+/public/packs
+/public/packs-test
+/public/assets
+
+# Yarn
+/yarn-error.log
+yarn-debug.log*
+.yarn-integrity
+
+# Storage / uploads
+/storage/*
+!/storage/.keep
+/public/uploads
+
+# OS and IDE
+.DS_Store
+.idea/
+*.swp
+*.swo
+*~
